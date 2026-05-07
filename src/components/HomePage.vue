@@ -38,26 +38,18 @@ function register() {
   display: flex;
   justify-content: center;
   align-items: center;
-
   padding: 24px;
-  background: white;
-
-  font-family: Arial, sans-serif;
+  background: #f3f4f6;  /* ← grauer Hintergrund statt white */
 }
 
 .card {
+  background: white;
   width: 100%;
   max-width: 500px;
   padding: 48px 40px;
-  padding: 5vw;
-  background: white;
-
   border-radius: 24px;
-
-
   text-align: center;
-
-
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);  /* ← Schatten hinzufügen */
 }
 
 h1 {

@@ -12,7 +12,7 @@ const isLoggedIn = ref(false)
 </template>
 
 <style>
-*, *::before, *::after {
+* {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -21,6 +21,7 @@ const isLoggedIn = ref(false)
 html, body, #app {
   width: 100%;
   min-height: 100vh;
+  margin: 0;
   background: #f3f4f6;  /* ← das hier ist neu */
 }
 </style>

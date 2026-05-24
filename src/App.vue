@@ -22,7 +22,7 @@ html, body, #app {
   width: 100%;
   min-height: 100vh;
   margin: 0;
-  background: #f3f4f6;  /* ← das hier ist neu */
+  background: #f3f4f6;
 }
 </style>
 

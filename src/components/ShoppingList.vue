@@ -1,28 +1,49 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Item from './Item.vue'
 
 const search = ref('')
 const sortByPriority = ref(false)
 
-const priorityOrder: Record<string, number> = { 'Hoch': 1, 'Mittel': 2, 'Niedrig': 3 }
+const priorityOrder: Record<string, number> = {
+  'Hoch': 1,
+  'Mittel': 2,
+  'Niedrig': 3
+}
 
-const items = [
-  { id: 1, name: 'Milch', category: 'Milchprodukte', amount: '1 Liter', shop: 'EDEKA', link: 'https://edeka.de', price: 1.99, priority: 'Mittel', status: 'Gekauft' },
-  { id: 2, name: 'Wassermelone', category: 'Obst', amount: '1 kg', shop: 'EDEKA', link: 'https://edeka.de', price: 1.11, priority: 'Hoch', status: 'Gekauft' },
-  { id: 3, name: 'Vollkornbrot', category: 'Backwaren', amount: '1 Stück', shop: 'Bäckerei', link: 'https://brot.com', price: 3.49, priority: 'Niedrig', status: 'Zu kaufen' },
-]
+const items = ref<any[]>([])
+
+onMounted(() => {
+  const baseUrl = import.meta.env.VITE_BACKEND_BASE_URL
+  const endpoint = baseUrl + '/item'
+
+  const requestOptions = {
+    method: 'GET',
+    redirect: 'follow' as RequestRedirect
+  }
+
+  fetch(endpoint, requestOptions)
+    .then(response => response.json())
+    .then(result => {
+      items.value = result
+    })
+    .catch(error => console.log('error', error))
+})
 
 const filteredItems = computed(() => {
-  let result = items.filter(item =>
+  let result = items.value.filter(item =>
     item.name.toLowerCase().includes(search.value.toLowerCase()) ||
-    item.category.toLowerCase().includes(search.value.toLowerCase()) ||
-    item.status.toLowerCase().includes(search.value.toLowerCase()) ||
-    item.shop.toLowerCase().includes(search.value.toLowerCase())
+    item.category.toLowerCase().includes(search.value.toLowerCase())
   )
+
   if (sortByPriority.value) {
-    result = [...result].sort((a, b) => (priorityOrder[a.priority] ?? 99) - (priorityOrder[b.priority] ?? 99))
+    result = [...result].sort(
+      (a, b) =>
+        (priorityOrder[a.priority] ?? 99) -
+        (priorityOrder[b.priority] ?? 99)
+    )
   }
+
   return result
 })
 </script>

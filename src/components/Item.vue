@@ -6,7 +6,7 @@ defineProps<{
     category: string
     amount: string
     shop: string
-    link: string
+    url: string
     price: number
     priority: string
     status: string
@@ -21,7 +21,7 @@ defineProps<{
     <span>{{ item.amount }}</span>
     <span>{{ item.shop }}</span>
     <span>
-      <a :href="item.link" target="_blank">
+      <a :href="item.url" target="_blank">
           Öffnen
       </a>
     </span>

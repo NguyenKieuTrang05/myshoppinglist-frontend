@@ -14,9 +14,9 @@ app.use(
     domain: 'dev-o8jwagsyjbo4cp31.us.auth0.com',
     clientId: 'EMpk6l3VsOzYxQ9yx59ZlvRBwuL5WKiz',
     authorizationParams: {
-      redirect_uri: window.location.origin
-    }
-  })
+      redirect_uri: window.location.origin + '/dashboard',
+    },
+  }),
 )
 
 app.mount('#app')

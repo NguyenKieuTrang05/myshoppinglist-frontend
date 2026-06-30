@@ -4,6 +4,9 @@ const { loginWithRedirect } = useAuth0()
 
 function goToRegister() {
   loginWithRedirect({
+    appState: {
+      target: '/dashboard',
+    },
     authorizationParams: {
       screen_hint: 'signup',
     },
@@ -11,7 +14,11 @@ function goToRegister() {
 }
 
 function goToLogin() {
-  loginWithRedirect()
+  loginWithRedirect({
+    appState: {
+      target: '/dashboard',
+    },
+  })
 }
 </script>
 

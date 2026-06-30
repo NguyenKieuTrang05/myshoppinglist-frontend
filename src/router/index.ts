@@ -9,11 +9,6 @@ const router = createRouter({
       name: 'landing',
       component: LandingView,
     },
-    {
-      path: '/about',
-      name: 'about',
-      component: () => import('../views/AboutView.vue'),
-    },
   ],
 })
 

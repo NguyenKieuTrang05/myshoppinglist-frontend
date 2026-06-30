@@ -40,7 +40,7 @@ function goToLogin() {
         </div>
       </div>
       <div class="landing-pic">
-        <img src="@/assets/Macbook.png" alt="My ShoppingList">
+        <img src="@/assets/macbook.png" alt="My ShoppingList">
       </div>
     </section>
   </div>

@@ -1,20 +1,10 @@
 <script setup lang="ts">
-<<<<<<< HEAD
 import { useAuth0 } from '@auth0/auth0-vue'
-
-const { user, logout } = useAuth0()
-
-function goToLogout() {
-  logout({
-    logoutParams: {
-      returnTo: window.location.origin,
-    },
-  })
-=======
 import Sidebar from '@/components/Sidebar.vue'
 import { useRouter } from 'vue-router'
 import { ref } from 'vue'
 
+const { user } = useAuth0()
 const router = useRouter()
 
 const categories = ref([
@@ -42,6 +32,7 @@ const openCategory = (name: string) => {
 const createCategory = () => {
   showAddCategoryForm.value = true
 }
+
 const saveNewCategory = () => {
   categories.value.push({
     name: newCategory.value.name,
@@ -59,27 +50,16 @@ const saveNewCategory = () => {
 
 const cancelNewCategory = () => {
   showAddCategoryForm.value = false
->>>>>>> 1130080 (komplettes frontend)
 }
 </script>
 
 <template>
-<<<<<<< HEAD
-  <main class="dashboard">
-    <h1>Hallo {{ user?.name }} 👋</h1>
-    <p>Du bist erfolgreich eingeloggt.</p>
-
-    <button @click="goToLogout">
-      Ausloggen
-    </button>
-  </main>
-=======
   <div class="dashboard">
     <Sidebar />
 
     <main class="content">
       <div class="top-section">
-        <h1>Hallo Viona 👋</h1>
+        <h1>Hallo {{ user?.name || 'Viona' }} 👋</h1>
         <p>Hier findest du deine kategorisierten Einkaufslisten.</p>
       </div>
 
@@ -103,6 +83,7 @@ const cancelNewCategory = () => {
           <p>{{ category.count }} Listen</p>
         </button>
       </div>
+
       <div v-if="showAddCategoryForm" class="add-box">
         <h2>Neue Kategorie erstellen</h2>
 
@@ -116,30 +97,10 @@ const cancelNewCategory = () => {
       </div>
     </main>
   </div>
->>>>>>> 1130080 (komplettes frontend)
 </template>
 
 <style scoped>
 .dashboard {
-<<<<<<< HEAD
-  min-height: 100vh;
-  background: #F8F4EC;
-  padding: 40px;
-  font-family: 'Poppins', sans-serif;
-}
-
-button {
-  margin-top: 24px;
-  width: 160px;
-  height: 48px;
-  background: #8a461f;
-  color: white;
-  border: none;
-  border-radius: 7px;
-  font-weight: 700;
-  cursor: pointer;
-}
-=======
   display: flex;
   min-height: 100vh;
   background-color: #f5f1ea;
@@ -228,6 +189,7 @@ h2 {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
 .add-box {
   margin-top: 35px;
   padding: 25px;
@@ -271,5 +233,4 @@ h2 {
 .add-actions button:hover {
   opacity: 0.9;
 }
->>>>>>> 1130080 (komplettes frontend)
 </style>

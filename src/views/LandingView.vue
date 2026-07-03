@@ -1,6 +1,7 @@
 <script setup lang="ts">
-<<<<<<< HEAD
 import { useAuth0 } from '@auth0/auth0-vue'
+import logo from '@/assets/Logo.png'
+
 const { loginWithRedirect } = useAuth0()
 
 function goToRegister() {
@@ -20,45 +21,10 @@ function goToLogin() {
       target: '/dashboard',
     },
   })
-=======
-import logo from '@/assets/Logo.png'
-
-import { useRouter } from 'vue-router'
-
-const router = useRouter()
-
-const goToLogin = () => {
-  router.push('/login')
-}
-
-const goToRegister = () => {
-  router.push('/register')
->>>>>>> 1130080 (komplettes frontend)
 }
 </script>
 
 <template>
-<<<<<<< HEAD
-  <div class="landing">
-    <header class="navbar">
-      <div class="logo-area">
-        <div class="logo">SL</div>
-        <h2>My ShoppingList</h2>
-      </div>
-    </header>
-    <section class="landing-main">
-      <div class="landing-text">
-        <h1>
-          Plane deine Einkäufe, speichere Produkte und verwalte deine Listen zentral.
-        </h1>
-        <div class="buttons">
-          <button class="register"
-                  @click="goToRegister">
-            Registrieren
-          </button>
-          <button class="login"
-                  @click="goToLogin">
-=======
   <div class="landing-page">
     <header class="header">
       <div class="logo-container">
@@ -80,17 +46,10 @@ const goToRegister = () => {
           </button>
 
           <button class="login-btn" @click="goToLogin">
->>>>>>> 1130080 (komplettes frontend)
             Einloggen
           </button>
         </div>
       </div>
-<<<<<<< HEAD
-      <div class="landing-pic">
-        <img src="@/assets/macbook.png" alt="My ShoppingList">
-      </div>
-    </section>
-=======
 
       <div class="phone-container">
         <div class="phone">
@@ -106,103 +65,10 @@ const goToRegister = () => {
         </div>
       </div>
     </main>
->>>>>>> 1130080 (komplettes frontend)
   </div>
 </template>
 
 <style scoped>
-<<<<<<< HEAD
-.landing {
-  min-height: 100vh;
-  background: #F8F4EC;
-  padding: 32px 70px;
-  font-family: 'Poppins', sans-serif;
-  color: #1f1f1f;
-}
-
-.navbar {
-  display: flex;
-  align-items: center;
-}
-
-.logo-area {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-
-.logo {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: #8a461f;
-  color: #fff8ee;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-family: Georgia, serif;
-  font-size: 20px;
-  border: 2px solid #fff8ee;
-  box-shadow: 0 0 0 2px #8a461f;
-}
-
-.logo-area h2 {
-  color: #8a461f;
-  font-size: 24px;
-  font-weight: 400;
-}
-
-.landing-main {
-  margin-top: 180px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.landing-text h1 {
-  max-width: 650px;
-  font-size: 46px;
-  line-height: 1.25;
-  font-weight: 800;
-}
-
-.buttons {
-  margin-top: 56px;
-  display: flex;
-  gap: 64px;
-}
-
-.register,
-.login {
-  width: 210px;
-  height: 56px;
-  background: #8a461f;
-  color: white;
-  border: 1.5px solid #2f1a10;
-  border-radius: 7px;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.register:hover,
-.login:hover {
-  background: #6f3618;
-}
-
-/* Bild */
-
-.landing-pic {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.landing-pic img {
-  width: 760px;
-  height: auto;
-=======
 .landing-page {
   min-height: 100vh;
   background-color: #F5F1EA;
@@ -243,7 +109,7 @@ h1 {
   line-height: 1.25;
   color: #111;
   font-weight: 700;
-  max-width:700px;
+  max-width: 700px;
 }
 
 .buttons {
@@ -366,6 +232,5 @@ button:hover {
   .left-section h2 {
     font-size: 42px;
   }
->>>>>>> 1130080 (komplettes frontend)
 }
-</style>
+</style>S

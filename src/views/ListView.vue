@@ -523,6 +523,9 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+
+/* ===== Seitenlayout ===== */
+
 .list-page {
   display: flex;
   min-height: 100vh;
@@ -534,6 +537,8 @@ onMounted(async () => {
   padding: 45px 55px;
   color: #8b4513;
 }
+
+/* ===== Navigation===== */
 
 .breadcrumb {
   display: flex;
@@ -552,14 +557,41 @@ onMounted(async () => {
   font-size: 18px;
 }
 
+/* ===== Titelbereich ===== */
+
 .title-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
+.title-with-edit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 h1 {
   font-size: 42px;
+}
+
+.edit-title-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 22px;
+  color: #8b4513;
+}
+
+.edit-title-btn:hover {
+  transform: scale(1.15);
+}
+
+/* ===== Hauptaktionen ===== */
+
+.actions {
+  display: flex;
+  gap: 12px;
 }
 
 .add-button {
@@ -571,6 +603,22 @@ h1 {
   font-size: 17px;
   cursor: pointer;
 }
+
+.delete-list-btn {
+  background: #c0392b;
+  color: white;
+  border: none;
+  padding: 15px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 17px;
+}
+
+.delete-list-btn:hover {
+  background: #a93226;
+}
+
+/* ===== Filter und Suche ===== */
 
 .tabs {
   display: flex;
@@ -586,6 +634,18 @@ h1 {
   cursor: pointer;
   text-decoration: underline;
 }
+
+.search-bar {
+  width: 320px;
+  padding: 12px 16px;
+  margin: 20px 0;
+  border: 1px solid #8b4513;
+  border-radius: 10px;
+  background: #fffaf3;
+  color: #8b4513;
+  font-size: 16px;
+}
+/* ===== Tabelle ===== */
 
 table {
   width: 100%;
@@ -605,6 +665,8 @@ th {
   font-weight: 700;
   background-color: #f1e5d8;
 }
+
+/* ===== Status und kleine Aktionen ===== */
 
 .status {
   padding: 6px 12px;
@@ -627,6 +689,8 @@ th {
   font-size: 18px;
   margin: 0 4px;
 }
+
+/* ===== Produktformular ===== */
 
 .edit-box {
   margin-top: 35px;
@@ -667,51 +731,9 @@ th {
   padding: 12px 25px;
   cursor: pointer;
 }
-.search-bar {
-  width: 320px;
-  padding: 12px 16px;
-  margin: 20px 0;
-  border: 1px solid #8b4513;
-  border-radius: 10px;
-  background: #fffaf3;
-  color: #8b4513;
-  font-size: 16px;
-}
-.actions {
-  display: flex;
-  gap: 12px;
-}
 
-.delete-list-btn {
-  background: #c0392b;
-  color: white;
-  border: none;
-  padding: 15px 20px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 17px;
-}
+/* ===== Liste umbenennen ===== */
 
-.delete-list-btn:hover {
-  background: #a93226;
-}
-.title-with-edit {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.edit-title-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 22px;
-  color: #8b4513;
-}
-
-.edit-title-btn:hover {
-  transform: scale(1.15);
-}
 .rename-box {
   margin: 20px 0;
   display: flex;

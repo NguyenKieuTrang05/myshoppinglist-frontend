@@ -168,6 +168,9 @@ onMounted(() => {
 </template>
 
 <style scoped>
+
+/* ===== Seitenlayout ===== */
+
 .expenses-page {
   display: flex;
   min-height: 100vh;
@@ -181,6 +184,8 @@ onMounted(() => {
   overflow-x: auto;
 }
 
+/* ===== Überschriften ===== */
+
 h1 {
   font-size: 42px;
   margin-bottom: 8px;
@@ -190,6 +195,12 @@ h1 {
   font-size: 20px;
   margin-bottom: 35px;
 }
+h2 {
+  font-size: 28px;
+  margin: 35px 0 18px;
+}
+
+/* ===== Zusammenfassung ===== */
 
 .summary-grid {
   display: flex;
@@ -214,10 +225,7 @@ h1 {
   font-size: 34px;
 }
 
-h2 {
-  font-size: 28px;
-  margin: 35px 0 18px;
-}
+/* ===== Ausgaben nach Kategorien ===== */
 
 .category-grid {
   display: grid;
@@ -250,6 +258,8 @@ h2 {
   background-color: #fffaf3;
   font-size: 17px;
 }
+
+/* ===== Ausgabentabelle ===== */
 
 .expenses-table th,
 .expenses-table td {

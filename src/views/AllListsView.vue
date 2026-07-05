@@ -121,6 +121,9 @@ onMounted(() => {
 </template>
 
 <style scoped>
+
+/* ===== Seitenlayout ===== */
+
 .all-lists-page {
   display: flex;
   min-height: 100vh;
@@ -133,6 +136,8 @@ onMounted(() => {
   color: #8b4513;
 }
 
+/* ===== Überschriften ===== */
+
 h1 {
   font-size: 42px;
   margin-bottom: 8px;
@@ -143,6 +148,8 @@ p {
   margin-bottom: 35px;
 }
 
+/* ===== Leere Ansicht ===== */
+
 .empty-box {
   padding: 25px;
   border: 2px solid #8b4513;
@@ -150,6 +157,21 @@ p {
   background-color: #fffaf3;
   font-size: 20px;
 }
+
+/* ===== Suchleiste ===== */
+
+.search-bar {
+  width: 360px;
+  padding: 12px 16px;
+  margin: 0 0 30px;
+  border: 1px solid #8b4513;
+  border-radius: 10px;
+  background: #fffaf3;
+  color: #8b4513;
+  font-size: 16px;
+}
+
+/* ===== Karten ===== */
 
 .card-grid {
   display: grid;
@@ -209,16 +231,8 @@ p {
   font-size: 15px;
   margin: 0;
 }
-.search-bar {
-  width: 360px;
-  padding: 12px 16px;
-  margin: 0 0 30px;
-  border: 1px solid #8b4513;
-  border-radius: 10px;
-  background: #fffaf3;
-  color: #8b4513;
-  font-size: 16px;
-}
+
+/* ===== Responsive ===== */
 
 @media (max-width: 1100px) {
   .card-grid {

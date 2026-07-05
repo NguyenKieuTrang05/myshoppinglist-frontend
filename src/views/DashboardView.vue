@@ -154,6 +154,9 @@ watch(
 </template>
 
 <style scoped>
+
+/* ===== Seitenlayout ===== */
+
 .dashboard {
   display: flex;
   min-height: 100vh;
@@ -166,6 +169,8 @@ watch(
   color: #8b4513;
 }
 
+/* ===== Begrüßungsbereich ===== */
+
 .top-section h1 {
   font-size: 38px;
   margin-bottom: 8px;
@@ -176,10 +181,14 @@ watch(
   margin-bottom: 45px;
 }
 
+/* ===== Überschriften ===== */
+
 h2 {
   font-size: 32px;
   margin-bottom: 30px;
 }
+
+/* ===== Kategorien-Karten ===== */
 
 .card-grid {
   display: grid;
@@ -194,12 +203,10 @@ h2 {
   background-color: #fffaf3;
   color: #8b4513;
   cursor: pointer;
-
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-
   padding: 20px;
   transition: 0.2s;
 }
@@ -225,7 +232,7 @@ h2 {
   font-size: 18px;
 }
 
-/* Neue Kategorie */
+/* ===== Neue Kategorie ===== */
 
 .create-card {
   background: #8b4513;
@@ -254,7 +261,7 @@ h2 {
   color: white;
 }
 
-/* Formular */
+/* ===== Formular ===== */
 
 .add-box {
   margin-top: 35px;
@@ -300,6 +307,8 @@ h2 {
 .add-actions button:hover {
   opacity: 0.9;
 }
+
+/* ===== Responsive Design ===== */
 
 @media (max-width: 1100px) {
   .card-grid {

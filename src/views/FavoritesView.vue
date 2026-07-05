@@ -96,7 +96,11 @@ onMounted(() => {
     </main>
   </div>
 </template>
+
 <style scoped>
+
+/* ===== Seitenlayout ===== */
+
 .favorites-page {
   display: flex;
   min-height: 100vh;
@@ -109,6 +113,8 @@ onMounted(() => {
   color: #8b4513;
 }
 
+/* ===== Überschriften ===== */
+
 h1 {
   font-size: 42px;
   margin-bottom: 8px;
@@ -119,6 +125,8 @@ p {
   margin-bottom: 35px;
 }
 
+/* ===== Leere Ansicht ===== */
+
 .empty-box {
   padding: 25px;
   border: 2px solid #8b4513;
@@ -127,6 +135,8 @@ p {
   font-size: 20px;
 }
 
+/* ===== Favoriten-Karten ===== */
+
 .card-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(180px, 1fr));
@@ -134,23 +144,18 @@ p {
 }
 .card {
   position: relative;
-
   height: 205px;
-
   border: 2px solid #8b4513;
   border-radius: 18px;
   background-color: #fffaf3;
   color: #8b4513;
-
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-
   padding: 20px;
   text-align: center;
   box-sizing: border-box;
-
   cursor: pointer;
   transition: .2s;
 }
@@ -164,6 +169,8 @@ p {
   font-size: 38px;
   margin-bottom: 14px;
 }
+
+/* ===== Karteninhalt ===== */
 
 .favorite-icon {
   position: absolute;

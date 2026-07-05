@@ -40,6 +40,8 @@ const router = useRouter()
 
 <style scoped>
 
+/* ===== Sidebar Layout ===== */
+
 .sidebar {
   width: 280px;
   min-width: 280px;
@@ -50,6 +52,7 @@ const router = useRouter()
   padding: 30px 20px;
   box-sizing: border-box;
 }
+/* ===== Logo ===== */
 
 .logo-section {
   display: flex;
@@ -70,6 +73,8 @@ const router = useRouter()
   font-size: 28px;
   font-weight: 700;
 }
+
+/* ===== Navigation ===== */
 
 .menu {
   display: flex;

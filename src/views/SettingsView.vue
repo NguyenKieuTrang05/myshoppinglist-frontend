@@ -119,6 +119,9 @@ function handleLogout() {
 </template>
 
 <style scoped>
+
+/* ===== Seitenlayout ===== */
+
 .settings-page {
   display: flex;
   min-height: 100vh;
@@ -134,6 +137,8 @@ function handleLogout() {
   max-width: calc(100vw - 280px);
 }
 
+/* ===== Profilkarte ===== */
+
 .profile-card {
   width: 100%;
   max-width: 1000px;
@@ -141,7 +146,6 @@ function handleLogout() {
   background: transparent;
   border: none;
   box-shadow: none;
-
 }
 
 h1 {
@@ -157,11 +161,14 @@ h1 {
   align-items: start;
 }
 
+/* ===== Profilbild ===== */
+
 .avatar-section {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
+
 .profile-picture {
   width: 190px;
   height: 190px;
@@ -224,6 +231,7 @@ h1 {
   display: none;
 }
 
+/* ===== Formular ===== */
 
 .form-section label {
   display: block;
@@ -257,6 +265,8 @@ h1 {
   color: #9b6a50;
 }
 
+/* ===== Buttons ===== */
+
 .actions {
   display: flex;
   gap: 16px;
@@ -283,10 +293,13 @@ h1 {
 .logout-btn {
   background: #b83b3b;
 }
+
 .save-btn:hover,
 .logout-btn:hover {
   opacity: 0.9;
 }
+
+/* ===== Responsive ===== */
 
 @media (max-width: 1000px) {
   .profile-layout {

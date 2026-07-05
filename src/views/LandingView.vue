@@ -66,6 +66,9 @@ function goToRegister() {
 </template>
 
 <style scoped>
+
+/* ===== Seitenlayout ===== */
+
 .landing {
   min-height: 100vh;
   background-color: #f5f1ea;
@@ -73,6 +76,8 @@ function goToRegister() {
   font-family: 'Poppins', sans-serif;
   color: #1f1f1f;
 }
+
+/* ===== Navigation / Logo ===== */
 
 .navbar {
   display: flex;
@@ -97,6 +102,8 @@ function goToRegister() {
   font-weight: 700;
 }
 
+/* ===== Hauptbereich ===== */
+
 .landing-main {
   margin-top: 90px;
   display: flex;
@@ -111,6 +118,8 @@ function goToRegister() {
   font-weight: 600;
   margin-top: -25px;
 }
+
+/* ===== Buttons ===== */
 
 .buttons {
   margin-top: 56px;
@@ -136,6 +145,8 @@ function goToRegister() {
 .login:hover {
   background: #6f3618;
 }
+
+/* ===== MacBook-Bild ===== */
 
 .landing-pic {
   display: flex;

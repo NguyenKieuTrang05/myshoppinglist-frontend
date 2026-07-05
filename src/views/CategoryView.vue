@@ -169,6 +169,9 @@ onMounted(() => {
 </template>
 
 <style scoped>
+
+/* ===== Seitenlayout ===== */
+
 .category-page {
   display: flex;
   min-height: 100vh;
@@ -180,6 +183,8 @@ onMounted(() => {
   padding: 45px 55px;
   color: #8b4513;
 }
+
+/* ===== Navigation ===== */
 
 .breadcrumb {
   display: flex;
@@ -198,6 +203,8 @@ onMounted(() => {
   cursor: pointer;
 }
 
+/* ===== Überschriften ===== */
+
 h1 {
   font-size: 42px;
   margin-bottom: 8px;
@@ -208,6 +215,8 @@ p {
   margin-bottom: 40px;
 }
 
+/* ===== Listenkarten ===== */
+
 .card-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(180px, 1fr));
@@ -216,22 +225,17 @@ p {
 
 .card {
   position: relative;
-
   height: 205px;
-
   border: 2px solid #8b4513;
   border-radius: 18px;
   background-color: #fffaf3;
   color: #8b4513;
-
   cursor: pointer;
   transition: .2s;
-
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-
   padding: 20px;
   text-align: center;
   box-sizing: border-box;
@@ -251,33 +255,28 @@ p {
   z-index: 10;
 }
 .icon {
-
   font-size: 38px;
-
   margin-bottom: 14px;
-
 }
 
 .plus {
   font-size: 48px;
   font-weight: bold;
 }
+
 .card h3 {
-
   font-size: 22px;
-
   margin: 0 0 10px;
-
   line-height: 1.2;
 
 }
 .card p {
-
   margin: 0;
-
   font-size: 17px;
 
 }
+
+/* ===== Neue Liste ===== */
 
 .create-card {
   background-color: #8b4513;
@@ -288,11 +287,7 @@ p {
   background-color: #7a3b1d;
 }
 
-@media (max-width: 1100px) {
-  .card-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
+/* ===== Formular ===== */
 
 .add-box {
   margin-top: 35px;
@@ -333,5 +328,11 @@ p {
   border-radius: 10px;
   padding: 12px 25px;
   cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 </style>

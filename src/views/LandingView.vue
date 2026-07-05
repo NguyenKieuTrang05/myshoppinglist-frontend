@@ -1,236 +1,150 @@
 <script setup lang="ts">
 import { useAuth0 } from '@auth0/auth0-vue'
+import { useRouter } from 'vue-router'
+import { watch } from 'vue'
 import logo from '@/assets/Logo.png'
+import macbook from '@/assets/macbook.png'
 
-const { loginWithRedirect } = useAuth0()
+const router = useRouter()
+const { loginWithRedirect, isAuthenticated, isLoading } = useAuth0()
 
-function goToRegister() {
-  loginWithRedirect({
-    appState: {
-      target: '/dashboard',
-    },
-    authorizationParams: {
-      screen_hint: 'signup',
-    },
-  })
-}
+watch(
+  [isAuthenticated, isLoading],
+  () => {
+    if (!isLoading.value && isAuthenticated.value) {
+      router.push('/dashboard')
+    }
+  },
+  { immediate: true },
+)
 
 function goToLogin() {
   loginWithRedirect({
-    appState: {
-      target: '/dashboard',
-    },
+    appState: { target: '/dashboard' },
+  })
+}
+
+function goToRegister() {
+  loginWithRedirect({
+    appState: { target: '/dashboard' },
+    authorizationParams: { screen_hint: 'signup' },
   })
 }
 </script>
-
 <template>
-  <div class="landing-page">
-    <header class="header">
-      <div class="logo-container">
-        <img :src="logo" alt="ShoppingList Logo" class="logo" />
-        <h1>My ShoppingList</h1>
+  <div class="landing">
+    <header class="navbar">
+      <div class="logo-area">
+        <img :src="logo" alt="Logo" class="landing-logo" />
+        <h2>My ShoppingList</h2>
       </div>
     </header>
 
-    <main class="content">
-      <div class="left-section">
-        <h2>
-          Plane deine Einkäufe, speichere Produkte
-          und verwalte deine Listen zentral.
-        </h2>
+    <section class="landing-main">
+      <div class="landing-text">
+        <h1>
+          Plane deine Einkäufe, speichere Produkte und verwalte deine Listen
+          zentral.
+        </h1>
 
         <div class="buttons">
-          <button class="register-btn" @click="goToRegister">
+          <button class="register" @click="goToRegister()">
             Registrieren
           </button>
 
-          <button class="login-btn" @click="goToLogin">
+          <button class="login" @click="goToLogin()">
             Einloggen
           </button>
         </div>
       </div>
 
-      <div class="phone-container">
-        <div class="phone">
-          <div class="cloud"></div>
-          <div class="hill hill-light"></div>
-          <div class="hill hill-dark"></div>
-
-          <div class="phone-bottom">
-            <div class="search-bar"></div>
-            <span>♡</span>
-            <span>▽</span>
-          </div>
-        </div>
+      <div class="landing-pic">
+        <img :src="macbook" alt="My ShoppingList" />
       </div>
-    </main>
+    </section>
   </div>
 </template>
 
 <style scoped>
-.landing-page {
+.landing {
   min-height: 100vh;
-  background-color: #F5F1EA;
-  padding: 30px 60px;
-  font-family: Arial, sans-serif;
+  background-color: #f5f1ea;
+  padding: 32px 70px;
+  font-family: 'Poppins', sans-serif;
+  color: #1f1f1f;
 }
 
-.logo-container {
+.navbar {
   display: flex;
   align-items: center;
-  gap: 25px;
 }
 
-.logo {
-  width: 70px;
-  height: 70px;
+.landing-logo {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
 }
 
-h1 {
-  color: #8B4513;
-  font-size: 42px;
-  font-weight: 500;
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
-.content {
+.logo-area h2 {
+  color: #8b5a5a;
+  font-size: 34px;
+  font-weight: 700;
+}
+
+.landing-main {
+  margin-top: 90px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 80px;
 }
 
-.left-section {
+.landing-text h1 {
   max-width: 650px;
-}
-
-.left-section h2 {
-  font-size: 42px;
+  font-size: 44px;
   line-height: 1.25;
-  color: #111;
-  font-weight: 700;
-  max-width: 700px;
+  font-weight: 600;
+  margin-top: -25px;
 }
 
 .buttons {
-  margin-top: 80px;
+  margin-top: 56px;
   display: flex;
-  gap: 50px;
+  gap: 64px;
 }
 
-button {
-  background-color: #8B4513;
+.register,
+.login {
+  width: 210px;
+  height: 56px;
+  background: #8a461f;
   color: white;
-  border: none;
-  padding: 22px 65px;
-  border-radius: 12px;
-  font-size: 24px;
-  font-weight: 600;
+  border: 1.5px solid #2f1a10;
+  border-radius: 7px;
+  font-size: 16px;
+  font-weight: 700;
   cursor: pointer;
+  transition: 0.2s;
 }
 
-button:hover {
-  opacity: 0.9;
+.register:hover,
+.login:hover {
+  background: #6f3618;
 }
 
-.phone-container {
-  margin-right: 100px;
-  margin-top: -120px;
-}
-
-.phone {
-  width: 280px;
-  height: 560px;
-  border: 10px solid black;
-  border-radius: 45px;
-  background: linear-gradient(to bottom, #bfe4ff, #eaf7ff);
-  position: relative;
-  overflow: hidden;
-}
-
-.cloud {
-  position: absolute;
-  top: 80px;
-  left: 60px;
-  width: 150px;
-  height: 60px;
-  background: white;
-  border-radius: 50px;
-}
-
-.cloud::before {
-  content: "";
-  position: absolute;
-  width: 80px;
-  height: 80px;
-  background: white;
-  border-radius: 50%;
-  top: -30px;
-  left: 20px;
-}
-
-.cloud::after {
-  content: "";
-  position: absolute;
-  width: 60px;
-  height: 60px;
-  background: white;
-  border-radius: 50%;
-  top: -15px;
-  right: 20px;
-}
-
-.hill-light {
-  position: absolute;
-  width: 400px;
-  height: 150px;
-  background: #c3db8b;
-  border-radius: 50%;
-  bottom: 80px;
-  left: -70px;
-}
-
-.hill-dark {
-  position: absolute;
-  width: 420px;
-  height: 220px;
-  background: #86a800;
-  border-radius: 50%;
-  bottom: -80px;
-  left: -80px;
-}
-
-.phone-bottom {
-  position: absolute;
-  bottom: 20px;
-  left: 25px;
-  right: 25px;
+.landing-pic {
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 15px;
-  color: white;
-  font-size: 28px;
 }
 
-.search-bar {
-  flex: 1;
-  height: 20px;
-  border: 2px solid white;
-  border-radius: 15px;
+.landing-pic img {
+  width: 760px;
+  height: auto;
 }
-
-@media (max-width: 1100px) {
-  .content {
-    flex-direction: column;
-    gap: 60px;
-  }
-
-  .phone-container {
-    margin-right: 0;
-  }
-
-  .left-section h2 {
-    font-size: 42px;
-  }
-}
-</style>S
+</style>

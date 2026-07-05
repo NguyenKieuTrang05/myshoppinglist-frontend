@@ -2,28 +2,71 @@
 import { useAuth0 } from '@auth0/auth0-vue'
 import Sidebar from '@/components/Sidebar.vue'
 import { useRouter } from 'vue-router'
-import { ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
-const { user } = useAuth0()
+const API_URL = 'https://myshoppinglist-backend-vjdp.onrender.com'
+
+const { user, isLoading, isAuthenticated } = useAuth0()
 const router = useRouter()
 
-const categories = ref([
-  { name: 'Lebensmittel', icon: '🛒', count: 5 },
-  { name: 'Bücher', icon: '📚', count: 3 },
-  { name: 'Make-up', icon: '💄', count: 4 },
-  { name: 'Klamotten', icon: '👕', count: 6 },
-  { name: 'Schuhe', icon: '👟', count: 2 },
-  { name: 'Drogerie', icon: '🧴', count: 5 },
-  { name: 'Haushalt', icon: '🏠', count: 4 },
-  { name: 'Geschenke', icon: '🎁', count: 3 },
-])
+type ShoppingList = {
+  id: number
+  emoji: string | null
+  name: string
+  category: string
+}
 
+const shoppingLists = ref<ShoppingList[]>([])
 const showAddCategoryForm = ref(false)
 
 const newCategory = ref({
   name: '',
-  icon: '📁'
+  icon: '📁',
 })
+
+const categories = computed(() => {
+  const grouped: Record<string, { name: string; icon: string; count: number }> = {}
+
+  shoppingLists.value.forEach((list) => {
+    if (!grouped[list.category]) {
+      grouped[list.category] = {
+        name: list.category,
+        icon: list.emoji || '📁',
+        count: 0,
+      }
+    }
+
+    grouped[list.category]!.count++
+  })
+
+  return Object.values(grouped)
+})
+
+async function loadShoppingLists() {
+  if (!user.value?.sub) return
+
+  const response = await fetch(
+    `${API_URL}/shoppinglist/user/${encodeURIComponent(user.value.sub)}`,
+  )
+
+  shoppingLists.value = await response.json()
+}
+
+async function saveCurrentUser() {
+  if (!user.value?.sub) return
+
+  await fetch(`${API_URL}/users`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      id: user.value.sub,
+      email: user.value.email || null,
+      name: user.value.name || null,
+    }),
+  })
+}
 
 const openCategory = (name: string) => {
   router.push(`/category/${name}`)
@@ -34,15 +77,13 @@ const createCategory = () => {
 }
 
 const saveNewCategory = () => {
-  categories.value.push({
-    name: newCategory.value.name,
-    icon: newCategory.value.icon || '📁',
-    count: 0
-  })
+  if (!newCategory.value.name.trim()) return
+
+  router.push(`/category/${newCategory.value.name}`)
 
   newCategory.value = {
     name: '',
-    icon: '📁'
+    icon: '📁',
   }
 
   showAddCategoryForm.value = false
@@ -51,6 +92,19 @@ const saveNewCategory = () => {
 const cancelNewCategory = () => {
   showAddCategoryForm.value = false
 }
+
+watch(
+  [user, isLoading, isAuthenticated],
+  async () => {
+    if (isLoading.value) return
+    if (!isAuthenticated.value) return
+    if (!user.value?.sub) return
+
+    await saveCurrentUser()
+    await loadShoppingLists()
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -59,11 +113,11 @@ const cancelNewCategory = () => {
 
     <main class="content">
       <div class="top-section">
-        <h1>Hallo {{ user?.name || 'Viona' }} 👋</h1>
+        <h1>Hallo {{ user?.name }} 👋</h1>
         <p>Hier findest du deine kategorisierten Einkaufslisten.</p>
       </div>
 
-      <h2>Alle Listen</h2>
+      <h2>Kategorisierte Listen</h2>
 
       <div class="card-grid">
         <button class="card create-card" @click="createCategory">
@@ -134,15 +188,20 @@ h2 {
 }
 
 .card {
-  height: 165px;
+  min-height: 220px;
   border: 2px solid #8b4513;
   border-radius: 18px;
   background-color: #fffaf3;
   color: #8b4513;
   cursor: pointer;
-  text-align: center;
-  transition: 0.2s;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
   padding: 20px;
+  transition: 0.2s;
 }
 
 .card:hover {
@@ -151,44 +210,51 @@ h2 {
 }
 
 .icon {
-  font-size: 38px;
-}
-
-.plus {
-  font-size: 48px;
-  font-weight: bold;
+  font-size: 40px;
+  margin-bottom: 12px;
 }
 
 .card h3 {
+  margin: 0 0 10px;
   font-size: 22px;
-  margin-top: 15px;
-  margin-bottom: 8px;
+  font-weight: 700;
 }
 
 .card p {
-  font-size: 17px;
+  margin: 0;
+  font-size: 18px;
 }
 
+/* Neue Kategorie */
+
 .create-card {
-  background-color: #8b4513;
+  background: #8b4513;
   color: white;
 }
 
 .create-card:hover {
-  background-color: #7a3b1d;
+  background: #7a3b1d;
 }
 
-@media (max-width: 1100px) {
-  .card-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+.create-card .plus {
+  font-size: 48px;
+  line-height: 1;
+  margin-bottom: 18px;
 }
 
-@media (max-width: 800px) {
-  .card-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.create-card h3 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  color: white;
 }
+
+.create-card p {
+  margin: 0;
+  font-size: 17px;
+  color: white;
+}
+
+/* Formular */
 
 .add-box {
   margin-top: 35px;
@@ -205,7 +271,8 @@ h2 {
 }
 
 .add-box input {
-  width: 100%;
+  width: 92%;
+  display: block;
   margin-bottom: 14px;
   padding: 13px;
   border: 1px solid #8b4513;
@@ -232,5 +299,17 @@ h2 {
 
 .add-actions button:hover {
   opacity: 0.9;
+}
+
+@media (max-width: 1100px) {
+  .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 800px) {
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 </style>

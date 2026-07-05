@@ -1,50 +1,96 @@
 <script setup lang="ts">
 import Sidebar from '@/components/Sidebar.vue'
-import { productsByList } from '@/data/products'
+import { computed, onMounted, ref } from 'vue'
+import { useAuth0 } from '@auth0/auth0-vue'
 
-const parsePrice = (price: string) => {
-  const match = price.replace(',', '.').match(/[\d.]+/)
-  return match ? parseFloat(match[0]) : 0
+const API_URL = 'https://myshoppinglist-backend-vjdp.onrender.com'
+const { user } = useAuth0()
+
+type ShoppingList = {
+  id: number
+  name: string
+  category: string
+  owner?: { id: string }
 }
 
-const parseQuantity = (quantity: string) => {
-  const match = quantity.replace(',', '.').match(/[\d.]+/)
+type Product = {
+  id: number
+  name: string
+  category: string
+  amount: string
+  price: number
+  priority: string
+  status: string
+  purchased: boolean
+  mainCategory: string
+  listName: string
+}
+
+const products = ref<Product[]>([])
+
+async function loadExpenses() {
+  if (!user.value?.sub) return
+
+  const listResponse = await fetch(`${API_URL}/shoppinglist`)
+  const allLists: ShoppingList[] = await listResponse.json()
+
+  const ownLists = allLists.filter(
+    (list) => list.owner?.id === user.value?.sub,
+  )
+
+  const allProducts = await Promise.all(
+    ownLists.map(async (list) => {
+      const itemResponse = await fetch(`${API_URL}/shoppinglist/${list.id}/items`)
+      const items = await itemResponse.json()
+
+      return items.map((item: any) => ({
+        ...item,
+        mainCategory: list.category,
+        listName: list.name,
+      }))
+    }),
+  )
+
+  products.value = allProducts.flat()
+}
+
+const boughtProducts = computed(() =>
+  products.value.filter(
+    (product) => product.status === 'Gekauft' || product.purchased,
+  ),
+)
+
+function parseQuantity(amount: string) {
+  const match = amount.replace(',', '.').match(/[\d.]+/)
   return match ? parseFloat(match[0]) : 1
 }
 
-const boughtProducts = Object.entries(productsByList)
-  .flatMap(([listKey, products]) =>
-    products
-      .filter(product => product.status === 'Gekauft')
-      .map(product => ({
-        ...product,
-        mainCategory: listKey.split('-')[0],
-        listName: listKey.split('-')[1]
-      }))
-  )
-const getTotal = (product: any) => {
-  return parsePrice(product.price) * parseQuantity(product.quantity)
+function getTotal(product: Product) {
+  return Number(product.price || 0) * parseQuantity(product.amount || '1')
 }
 
-const totalExpenses = boughtProducts.reduce((sum, product) => {
-  return sum + getTotal(product)
-}, 0)
-
-const expensesByCategory = boughtProducts.reduce(
-  (result: Record<string, number>, product: any) => {
-    result[product.mainCategory] =
-      (result[product.mainCategory] || 0) + getTotal(product)
-
-    return result
-  },
-  {}
+const totalExpenses = computed(() =>
+  boughtProducts.value.reduce((sum, product) => sum + getTotal(product), 0),
 )
 
-const categoryExpenses = Object.entries(expensesByCategory)
+const expensesByCategory = computed(() => {
+  const result: Record<string, number> = {}
 
-const formatPrice = (value: number) => {
+  boughtProducts.value.forEach((product) => {
+    result[product.mainCategory] =
+      (result[product.mainCategory] || 0) + getTotal(product)
+  })
+
+  return Object.entries(result)
+})
+
+function formatPrice(value: number) {
   return value.toFixed(2).replace('.', ',') + ' €'
 }
+
+onMounted(() => {
+  loadExpenses()
+})
 </script>
 
 <template>
@@ -53,7 +99,10 @@ const formatPrice = (value: number) => {
 
     <main class="content">
       <h1>Ausgaben</h1>
-      <p class="subtitle">Hier siehst du alle gekauften Produkte und deine berechneten Ausgaben.</p>
+
+      <p class="subtitle">
+        Hier siehst du alle gekauften Produkte und deine berechneten Ausgaben.
+      </p>
 
       <div class="summary-grid">
         <div class="summary-card">
@@ -71,7 +120,7 @@ const formatPrice = (value: number) => {
 
       <div class="category-grid">
         <div
-          v-for="[category, amount] in categoryExpenses"
+          v-for="[category, amount] in expensesByCategory"
           :key="category"
           class="category-card"
         >
@@ -86,7 +135,8 @@ const formatPrice = (value: number) => {
         <thead>
         <tr>
           <th>Artikel</th>
-          <th>Kategorie</th>
+          <th>Hauptkategorie</th>
+          <th>Liste</th>
           <th>Menge</th>
           <th>Preis</th>
           <th>Gesamt</th>
@@ -96,13 +146,20 @@ const formatPrice = (value: number) => {
         <tbody>
         <tr
           v-for="product in boughtProducts"
-          :key="product.article + product.price"
+          :key="product.id"
         >
-          <td>{{ product.article }}</td>
-          <td>{{ product.category }}</td>
-          <td>{{ product.quantity }}</td>
-          <td>{{ product.price }}</td>
+          <td>{{ product.name }}</td>
+          <td>{{ product.mainCategory }}</td>
+          <td>{{ product.listName }}</td>
+          <td>{{ product.amount }}</td>
+          <td>{{ formatPrice(product.price) }}</td>
           <td>{{ formatPrice(getTotal(product)) }}</td>
+        </tr>
+
+        <tr v-if="boughtProducts.length === 0">
+          <td colspan="6">
+            Es wurden noch keine Produkte gekauft.
+          </td>
         </tr>
         </tbody>
       </table>
@@ -121,6 +178,7 @@ const formatPrice = (value: number) => {
   flex: 1;
   padding: 45px 55px;
   color: #8b4513;
+  overflow-x: auto;
 }
 
 h1 {

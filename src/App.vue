@@ -14,5 +14,14 @@ body,
   min-height: 100vh;
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
+  font-family: 'Poppins', sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
 }
 </style>

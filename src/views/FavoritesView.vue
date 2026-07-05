@@ -1,23 +1,64 @@
 <script setup lang="ts">
 import Sidebar from '@/components/Sidebar.vue'
 import { useRouter } from 'vue-router'
-import { listsByCategory } from '@/data/lists'
+import { onMounted, ref } from 'vue'
+import { useAuth0 } from '@auth0/auth0-vue'
+
+const API_URL = 'https://myshoppinglist-backend-vjdp.onrender.com'
 
 const router = useRouter()
+const { user } = useAuth0()
 
-const favoriteLists = Object.entries(listsByCategory).flatMap(
-  ([category, lists]) =>
-    lists
-      .filter(list => list.isFavorite)
-      .map(list => ({
-        ...list,
-        category
-      }))
-)
-
-const openList = (category: string, listName: string) => {
-  router.push(`/list/${category}/${listName}`)
+type ShoppingList = {
+  id: number
+  emoji: string | null
+  name: string
+  category: string
+  favorite: boolean
+  itemCount: number
 }
+
+const favoriteLists = ref<ShoppingList[]>([])
+
+async function loadFavorites() {
+  if (!user.value?.sub) return
+
+  const response = await fetch(
+    `${API_URL}/shoppinglist/user/${encodeURIComponent(user.value.sub)}`
+  )
+
+  const lists: ShoppingList[] = await response.json()
+
+  favoriteLists.value = await Promise.all(
+    lists
+      .filter((list) => list.favorite)
+      .map(async (list) => {
+        const itemResponse = await fetch(`${API_URL}/shoppinglist/${list.id}/items`)
+        const items = await itemResponse.json()
+
+        return {
+          ...list,
+          itemCount: items.length,
+        }
+      }),
+  )
+}
+
+function openList(list: ShoppingList) {
+  router.push(`/list/${list.category}/${list.id}`)
+}
+
+async function removeFavorite(list: ShoppingList) {
+  await fetch(`${API_URL}/shoppinglist/${list.id}/favorite`, {
+    method: 'PATCH',
+  })
+
+  await loadFavorites()
+}
+
+onMounted(() => {
+  loadFavorites()
+})
 </script>
 
 <template>
@@ -26,7 +67,7 @@ const openList = (category: string, listName: string) => {
 
     <main class="content">
       <h1>Favoriten ❤️</h1>
-      <p>Hier findest du alle Listen, die du favorisiert hast.</p>
+      <p class="subtitle">Hier findest du alle Listen, die du favorisiert hast.</p>
 
       <div v-if="favoriteLists.length === 0" class="empty-box">
         Noch keine Favoriten ausgewählt.
@@ -35,21 +76,26 @@ const openList = (category: string, listName: string) => {
       <div v-else class="card-grid">
         <button
           v-for="list in favoriteLists"
-          :key="`${list.category}-${list.name}`"
+          :key="list.id"
           class="card"
-          @click="openList(list.category, list.name)"
+          @click="openList(list)"
         >
-          <span class="favorite-icon">❤️</span>
-          <span class="icon">{{ list.icon }}</span>
+          <span
+            class="favorite-icon"
+            @click.stop="removeFavorite(list)"
+          >
+            ❤️
+          </span>
+
+          <span class="icon">{{ list.emoji || '🛒' }}</span>
           <h3>{{ list.name }}</h3>
-          <p>{{ list.category }}</p>
-          <p>{{ list.products }} Produkte</p>
+          <p class="category">{{ list.category }}</p>
+          <p class="products">{{ list.itemCount }} Produkte</p>
         </button>
       </div>
     </main>
   </div>
 </template>
-
 <style scoped>
 .favorites-page {
   display: flex;
@@ -86,23 +132,37 @@ p {
   grid-template-columns: repeat(4, minmax(180px, 1fr));
   gap: 25px;
 }
-
 .card {
   position: relative;
-  height: 180px;
+
+  height: 205px;
+
   border: 2px solid #8b4513;
   border-radius: 18px;
   background-color: #fffaf3;
   color: #8b4513;
-  cursor: pointer;
-  text-align: center;
-  transition: 0.2s;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
   padding: 20px;
+  text-align: center;
+  box-sizing: border-box;
+
+  cursor: pointer;
+  transition: .2s;
 }
 
 .card:hover {
   transform: translateY(-5px);
   background-color: #f1e5d8;
+}
+
+.icon {
+  font-size: 38px;
+  margin-bottom: 14px;
 }
 
 .favorite-icon {
@@ -112,18 +172,14 @@ p {
   font-size: 24px;
 }
 
-.icon {
-  font-size: 38px;
-}
-
 .card h3 {
   font-size: 22px;
-  margin-top: 15px;
-  margin-bottom: 8px;
+  margin: 0 0 10px;
+  line-height: 1.2;
 }
 
 .card p {
+  margin: 0;
   font-size: 16px;
-  margin: 5px 0;
 }
 </style>

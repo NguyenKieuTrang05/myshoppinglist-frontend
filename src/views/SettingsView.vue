@@ -1,22 +1,65 @@
 <script setup lang="ts">
 import Sidebar from '@/components/Sidebar.vue'
-import { ref } from 'vue'
+import { useAuth0 } from '@auth0/auth0-vue'
+import { ref, watch } from 'vue'
 
-const name = ref('Max Mustermann')
-const username = ref('max123')
-const email = ref('max@example.com')
-const password = ref('********')
+const { user, logout } = useAuth0()
 
-const saveSettings = () => {
+const name = ref('')
+const username = ref('')
+const email = ref('')
+const profileImage = ref<string | null>(null)
+
+function key(field: string) {
+  return `${user.value?.sub}-${field}`
+}
+
+function loadProfile() {
+  if (!user.value) return
+
+  name.value = localStorage.getItem(key('profileName')) || user.value.name || ''
+  username.value = localStorage.getItem(key('profileUsername')) || user.value.nickname || ''
+  email.value = user.value.email || ''
+  profileImage.value =
+    localStorage.getItem(key('profileImage')) ||
+    user.value.picture ||
+    null
+}
+
+watch(user, loadProfile, { immediate: true })
+
+function saveSettings() {
+  localStorage.setItem(key('profileName'), name.value)
+  localStorage.setItem(key('profileUsername'), username.value)
+
+  if (profileImage.value) {
+    localStorage.setItem(key('profileImage'), profileImage.value)
+  }
+
   alert('Änderungen gespeichert!')
 }
 
-import { useRouter } from 'vue-router'
+function changeProfileImage(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
 
-const router = useRouter()
+  if (!file) return
 
-const logout = () => {
-  router.push('/')
+  const reader = new FileReader()
+
+  reader.onload = () => {
+    profileImage.value = reader.result as string
+  }
+
+  reader.readAsDataURL(file)
+}
+
+function handleLogout() {
+  logout({
+    logoutParams: {
+      returnTo: window.location.origin,
+    },
+  })
 }
 </script>
 
@@ -25,47 +68,50 @@ const logout = () => {
     <Sidebar />
 
     <main class="content">
-      <h1>Profil</h1>
+      <div class="profile-card">
+        <h1>Profil</h1>
 
-      <div class="profile-container">
+        <div class="profile-layout">
+          <section class="avatar-section">
+            <div class="profile-picture">
+              <img v-if="profileImage" :src="profileImage" alt="Profilbild" />
 
-        <div class="profile-picture">
-          👤
-          <button class="edit-icon">✏️</button>
-        </div>
+              <div v-else class="default-user-icon">
+                <div class="head"></div>
+                <div class="body"></div>
+              </div>
 
-        <div class="form-container">
+              <label class="edit-icon">
+                ✎
+                <input type="file" accept="image/*" @change="changeProfileImage" />
+              </label>
+            </div>
+          </section>
 
-          <label>Name</label>
-          <div class="input-wrapper">
+          <section class="form-section">
+            <label>Name</label>
             <input v-model="name" />
-            <span>✏️</span>
-          </div>
 
-          <label>Benutzername</label>
-          <div class="input-wrapper">
+            <label>Benutzername</label>
             <input v-model="username" />
-            <span>✏️</span>
-          </div>
 
-          <label>E-Mail</label>
-          <div class="input-wrapper">
-            <input v-model="email" disabled/>
-          </div>
+            <label>E-Mail</label>
+            <input v-model="email" disabled />
 
-          <label>Passwort</label>
-          <div class="input-wrapper">
-            <input type="password" v-model="password" disabled/>
-          </div>
+            <p class="hint">
+              Die E-Mail wird über Auth0 verwaltet.
+            </p>
 
-          <button class="save-btn" @click="saveSettings">
-            Änderungen speichern
-          </button>
+            <div class="actions">
+              <button class="save-btn" @click="saveSettings">
+                Speichern
+              </button>
 
-          <button class="logout-btn" @click="logout">
-            Logout
-          </button>
-
+              <button class="logout-btn" @click="handleLogout">
+                Logout
+              </button>
+            </div>
+          </section>
         </div>
       </div>
     </main>
@@ -77,102 +123,178 @@ const logout = () => {
   display: flex;
   min-height: 100vh;
   background: #f7f3ed;
+  font-family: 'Poppins', sans-serif;
 }
 
 .content {
   flex: 1;
-  padding: 50px;
+  padding: 48px 64px;
+  color: #8b4b26;
+  overflow-x: hidden;
+  max-width: calc(100vw - 280px);
+}
+
+.profile-card {
+  width: 100%;
+  max-width: 1000px;
+  padding: 42px 20px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+
 }
 
 h1 {
-  color: #8b4b26;
-  font-size: 42px;
-  margin-bottom: 40px;
+  font-size: 38px;
+  margin-bottom: 38px;
+  font-weight: 700;
 }
 
-.profile-container {
+.profile-layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 560px);
+  gap: 55px;
+  align-items: start;
+}
+
+.avatar-section {
   display: flex;
-  gap: 100px;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
 }
-
 .profile-picture {
-  width: 220px;
-  height: 220px;
+  width: 190px;
+  height: 190px;
   border-radius: 50%;
-  background: #8b4b26;
-  color: white;
-  font-size: 110px;
+  position: relative;
+  overflow: visible;
   display: flex;
   justify-content: center;
   align-items: center;
-  position: relative;
+  background: #8b4b26;
+}
+
+.profile-picture img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.default-user-icon {
+  width: 110px;
+  height: 110px;
+}
+
+.default-user-icon .head {
+  width: 58px;
+  height: 58px;
+  background: #fffaf3;
+  border-radius: 50%;
+  margin: 0 auto;
+}
+
+.default-user-icon .body {
+  width: 110px;
+  height: 62px;
+  background: #fffaf3;
+  border-radius: 70px 70px 22px 22px;
+  margin-top: -2px;
 }
 
 .edit-icon {
   position: absolute;
-  right: 10px;
+  right: 6px;
   bottom: 10px;
-  border: none;
-  background: transparent;
-  font-size: 28px;
-  cursor: pointer;
-}
-
-.form-container {
-  width: 600px;
-}
-
-label {
-  display: block;
-  margin-bottom: 10px;
-  margin-top: 20px;
-  font-size: 28px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #ffffff;
   color: #8b4b26;
-}
-
-.input-wrapper {
-  position: relative;
-}
-
-input {
-  width: 100%;
-  padding: 18px 60px 18px 25px;
-  border: 3px solid #8b4b26;
-  border-radius: 50px;
-  font-size: 22px;
-  outline: none;
-  background: transparent;
-}
-
-.input-wrapper span {
-  position: absolute;
-  right: 25px;
-  top: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
   font-size: 24px;
+  font-weight: 700;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
+.edit-icon input {
+  display: none;
+}
+
+
+.form-section label {
+  display: block;
+  margin-bottom: 8px;
+  margin-top: 18px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.form-section input {
+  width: 100%;
+  height: 52px;
+  padding: 0 20px;
+  border: 2px solid #8b4b26;
+  border-radius: 16px;
+  font-size: 18px;
+  outline: none;
+  background: #fffaf3;
+  color: #8b4b26;
+  font-family: 'Poppins', sans-serif;
+}
+
+.form-section input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.hint {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #9b6a50;
+}
+
+.actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 34px;
+}
+
+.save-btn,
+.logout-btn {
+  width: 180px;
+  padding: 14px 18px;
+  border: none;
+  border-radius: 14px;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
 }
 
 .save-btn {
-  margin-top: 40px;
-  width: 100%;
-  padding: 18px;
-  border: none;
-  border-radius: 50px;
   background: #8b4b26;
-  color: white;
-  font-size: 22px;
-  cursor: pointer;
 }
 
 .logout-btn {
-  margin-top: 20px;
-  width: 100%;
-  padding: 18px;
-  border: none;
-  border-radius: 50px;
-  background: #b33a3a;
-  color: white;
-  font-size: 22px;
-  cursor: pointer;
+  background: #b83b3b;
 }
-</style>s
+.save-btn:hover,
+.logout-btn:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 1000px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .avatar-section {
+    align-items: flex-start;
+  }
+}
+</style>

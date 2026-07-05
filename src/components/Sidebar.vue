@@ -26,10 +26,6 @@ const router = useRouter()
         ⭐ Favoriten
       </button>
 
-      <button class="menu-item" @click="router.push('/shared')">
-        👥 Geteilte Listen
-      </button>
-
       <button class="menu-item" @click="router.push('/expenses')">
         💰 Ausgaben
       </button>
@@ -46,10 +42,13 @@ const router = useRouter()
 
 .sidebar {
   width: 280px;
+  min-width: 280px;
+  flex-shrink: 0;
   min-height: 100vh;
   background-color: #f5f1ea;
   border-right: 1px solid #e0d8d0;
   padding: 30px 20px;
+  box-sizing: border-box;
 }
 
 .logo-section {

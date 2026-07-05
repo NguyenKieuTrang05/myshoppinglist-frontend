@@ -1,114 +1,261 @@
 <script setup lang="ts">
 import Sidebar from '@/components/Sidebar.vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ref } from 'vue'
-import { productsByList, type Product } from '@/data/products'
+import { onMounted, ref, computed } from 'vue'
+
+const API_URL = 'https://myshoppinglist-backend-vjdp.onrender.com'
 
 const route = useRoute()
 const router = useRouter()
 
-const categoryName = route.params.categoryName as string | undefined
-const listName = route.params.listName as string
+const categoryName = route.params.categoryName as string
+const listId = Number(route.params.listName)
 
-const isSharedList = route.path.startsWith('/shared')
-
-let listKey = ''
-
-if (isSharedList) {
-  listKey = listName
-} else {
-  listKey = `${categoryName}-${listName}`
+type ShoppingList = {
+  id: number
+  name: string
+  category: string
+  emoji: string | null
 }
 
-const products = ref<Product[]>(productsByList[listKey] || [])
-
-const toggleStatus = (index: number) => {
-  const product = products.value[index]
-
-  if (!product) return
-
-  product.status =
-    product.status === 'Offen'
-      ? 'Gekauft'
-      : 'Offen'
+type Product = {
+  id?: number
+  name: string
+  category: string
+  amount: string
+  price: number
+  priority: string
+  status: string
+  purchased: boolean
+  url: string
 }
 
-const deleteProduct = (index: number) => {
-  const confirmDelete = confirm('Möchtest du dieses Produkt wirklich löschen?')
-
-  if (confirmDelete) {
-    products.value.splice(index, 1)
-  }
-}
-
-const editingIndex = ref<number | null>(null)
-
-const editProduct = ref<Product>({
-  article: '',
-  category: '',
-  quantity: '',
-  price: '',
-  priority: '',
-  status: '',
-})
-
-const startEdit = (index: number) => {
-  editingIndex.value = index
-  editProduct.value = { ...products.value[index] }
-}
-
-const saveEdit = () => {
-  if (editingIndex.value !== null) {
-    products.value[editingIndex.value] = { ...editProduct.value }
-    editingIndex.value = null
-  }
-}
-
-const cancelEdit = () => {
-  editingIndex.value = null
-}
-
-const goBack = () => {
-  if (isSharedList) {
-    router.push('/shared')
-  } else {
-    router.push(`/category/${categoryName}`)
-  }
-}
+const shoppingList = ref<ShoppingList | null>(null)
+const products = ref<Product[]>([])
+const activeFilter = ref('Alle Artikel')
 
 const showAddForm = ref(false)
+const editingIndex = ref<number | null>(null)
+const searchQuery = ref('')
+const showRenameForm = ref(false)
+const newListName = ref('')
 
-const newProduct = ref<Product>({
-  article: '',
+const emptyProduct = (): Product => ({
+  name: '',
   category: '',
-  quantity: '',
-  price: '',
+  amount: '',
+  price: 0,
   priority: 'Mittel',
-  status: 'Offen'
+  status: 'Offen',
+  purchased: false,
+  url: '',
 })
 
-const addProduct = () => {
+const newProduct = ref<Product>(emptyProduct())
+const editProduct = ref<Product>(emptyProduct())
+
+async function loadList() {
+  const response = await fetch(`${API_URL}/shoppinglist/${listId}`)
+  shoppingList.value = await response.json()
+}
+
+async function loadProducts() {
+  const response = await fetch(`${API_URL}/shoppinglist/${listId}/items`)
+  products.value = await response.json()
+}
+
+function goBack() {
+  router.push(`/category/${categoryName}`)
+}
+
+function addProduct() {
   showAddForm.value = true
 }
 
-const saveNewProduct = () => {
-  products.value.push({ ...newProduct.value })
+async function saveNewProduct() {
+  if (!newProduct.value.name.trim()) return
 
-  newProduct.value = {
-    article: '',
-    category: '',
-    quantity: '',
-    price: '',
-    priority: 'Mittel',
-    status: 'Offen'
+  try {
+    const response = await fetch(`${API_URL}/item`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ...newProduct.value,
+        price: Number(newProduct.value.price) || 0,
+        shoppingList: {
+          id: listId,
+        },
+      }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Backend lehnte Produkt ab:', response.status, errorText)
+      alert(`Fehler beim Speichern: ${response.status}`)
+      return
+    }
+
+    newProduct.value = emptyProduct()
+    showAddForm.value = false
+    await loadProducts()
+  } catch (error) {
+    console.error('Netzwerkfehler:', error)
+    alert('Verbindung zum Server fehlgeschlagen.')
+  }
+}
+function cancelNewProduct() {
+  showAddForm.value = false
+}
+function startEdit(product: Product) {
+  editingIndex.value = products.value.findIndex(p => p.id === product.id)
+  editProduct.value = { ...product }
+}
+
+async function saveEdit() {
+  if (editingIndex.value === null) return
+
+  const product = products.value[editingIndex.value]
+  if (!product || !product.id) return
+
+  await fetch(`${API_URL}/item/${product.id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      ...editProduct.value,
+      shoppingList: {
+        id: listId,
+      },
+    }),
+  })
+
+  editingIndex.value = null
+  await loadProducts()
+}
+
+function cancelEdit() {
+  editingIndex.value = null
+}
+
+async function deleteProduct(product: Product) {
+  if (!product.id) return
+
+  const confirmDelete = confirm('Möchtest du dieses Produkt wirklich löschen?')
+  if (!confirmDelete) return
+
+  await fetch(`${API_URL}/item/${product.id}`, {
+    method: 'DELETE',
+  })
+
+  await loadProducts()
+}
+async function deleteList() {
+  if (!shoppingList.value) return
+
+  const confirmed = confirm(
+    `Möchtest du die Liste "${shoppingList.value.name}" wirklich löschen?`
+  )
+
+  if (!confirmed) return
+
+  await fetch(`${API_URL}/shoppinglist/${shoppingList.value.id}`, {
+    method: 'DELETE',
+  })
+
+  router.push(`/category/${categoryName}`)
+}
+function startRenameList() {
+  if (!shoppingList.value) return
+
+  newListName.value = shoppingList.value.name
+  showRenameForm.value = true
+}
+
+async function saveRenameList() {
+  if (!shoppingList.value) return
+  if (!newListName.value.trim()) return
+
+  await fetch(`${API_URL}/shoppinglist/${shoppingList.value.id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      ...shoppingList.value,
+      name: newListName.value,
+    }),
+  })
+
+  showRenameForm.value = false
+  await loadList()
+}
+
+async function toggleStatus(product: Product) {
+  if (!product.id) return
+
+  await fetch(`${API_URL}/item/${product.id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      ...product,
+      status: product.status === 'Offen' ? 'Gekauft' : 'Offen',
+      purchased: product.status === 'Offen',
+      shoppingList: {
+        id: listId,
+      },
+    }),
+  })
+
+  await loadProducts()
+}
+const filteredProducts = computed(() => {
+  let result = products.value
+
+  switch (activeFilter.value) {
+    case 'Nach Kategorie':
+      result = [...products.value].sort((a, b) =>
+        a.category.localeCompare(b.category)
+      )
+      break
+
+    case 'Zu kaufen':
+      result = products.value.filter(
+        product => product.status === 'Offen'
+      )
+      break
+
+    case 'Priorität':
+      const order: Record<string, number> = {
+        Hoch: 1,
+        Mittel: 2,
+        Niedrig: 3,
+      }
+
+      result = [...products.value].sort(
+        (a, b) => (order[a.priority] ?? 99) - (order[b.priority] ?? 99)
+      )
+      break
   }
 
-  showAddForm.value = false
-}
+  if (!searchQuery.value.trim()) {
+    return result
+  }
 
-const cancelNewProduct = () => {
-  showAddForm.value = false
-}
+  return result.filter(product =>
+    product.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
+
+})
+
+onMounted(async () => {
+  await loadList()
+  await loadProducts()
+})
 </script>
 
 <template>
@@ -117,39 +264,82 @@ const cancelNewProduct = () => {
 
     <main class="content">
       <div class="breadcrumb">
-
-        <button
-          @click="isSharedList ? router.push('/shared') : router.push('/dashboard')"
-        >
-          {{ isSharedList ? 'Geteilte Listen' : 'Alle Listen' }}
+        <button @click="router.push('/dashboard')">
+          Alle Listen
         </button>
-
-        <template v-if="!isSharedList">
-          <span>›</span>
-
-          <button @click="router.push(`/category/${categoryName}`)">
-            {{ categoryName }}
-          </button>
-        </template>
 
         <span>›</span>
 
-        <strong>{{ listName }}</strong>
+        <button @click="goBack">
+          {{ categoryName }}
+        </button>
 
+        <span>›</span>
+
+        <strong>{{ shoppingList?.name }}</strong>
       </div>
 
       <div class="title-row">
-        <h1>{{ listName }}</h1>
-        <button class="add-button" @click="addProduct">+ Produkt hinzufügen</button>
+        <div class="title-with-edit">
+          <h1>{{ shoppingList?.name }}</h1>
+
+          <button
+            class="edit-title-btn"
+            @click="startRenameList"
+          >
+            ✏️
+          </button>
+        </div>
+
+        <div class="actions">
+          <button
+            class="delete-list-btn"
+            @click="deleteList"
+          >
+            🗑️ Liste löschen
+          </button>
+
+          <button
+            class="add-button"
+            @click="addProduct"
+          >
+            + Produkt hinzufügen
+          </button>
+        </div>
+      </div>
+
+      <div v-if="showRenameForm" class="rename-box">
+        <input
+          v-model="newListName"
+          placeholder="Neuer Listenname"
+        />
+
+        <button @click="saveRenameList">Speichern</button>
+        <button @click="showRenameForm = false">Abbrechen</button>
       </div>
 
       <nav class="tabs">
-        <button>Alle Artikel</button>
-        <button>Nach Kategorie</button>
-        <button>Zu kaufen</button>
-        <button>Priorität</button>
-      </nav>
+        <button @click="activeFilter = 'Alle Artikel'">
+          Alle Artikel
+        </button>
 
+        <button @click="activeFilter = 'Nach Kategorie'">
+          Nach Kategorie
+        </button>
+
+        <button @click="activeFilter = 'Zu kaufen'">
+          Zu kaufen
+        </button>
+
+        <button @click="activeFilter = 'Priorität'">
+          Priorität
+        </button>
+      </nav>
+      <input
+        v-model="searchQuery"
+        class="search-bar"
+        placeholder="🔍 Produkt suchen..."
+      />
       <table>
         <thead>
         <tr>
@@ -157,6 +347,7 @@ const cancelNewProduct = () => {
           <th>Kategorie</th>
           <th>Menge</th>
           <th>Preis</th>
+          <th>Link/Ort</th>
           <th>Priorität</th>
           <th>Status</th>
           <th>Aktionen</th>
@@ -164,36 +355,92 @@ const cancelNewProduct = () => {
         </thead>
 
         <tbody>
-        <tr v-for="(product, index) in products" :key="product.article">
-          <td>{{ product.article }}</td>
+        <tr
+          v-for="(product, index) in filteredProducts"
+          :key="product.id"
+        >
+          <td>{{ product.name }}</td>
           <td>{{ product.category }}</td>
-          <td>{{ product.quantity }}</td>
-          <td>{{ product.price }}</td>
+          <td>{{ product.amount }}</td>
+          <td>{{ product.price }} €</td>
+          <td>
+            <a
+              v-if="product.url && product.url.startsWith('http')"
+              :href="product.url"
+              target="_blank"
+            >
+              Öffnen
+            </a>
+
+            <span v-else-if="product.url">
+              {{ product.url }}
+            </span>
+
+            <span v-else>-</span>
+          </td>
           <td>{{ product.priority }}</td>
+
           <td>
             <button
               class="status-button"
               :class="product.status === 'Gekauft' ? 'bought' : 'open'"
-              @click="toggleStatus(index)"
+              @click="toggleStatus(product)"
             >
               {{ product.status }}
             </button>
           </td>
+
           <td>
-            <button class="small-btn" @click="startEdit(index)">✏️</button>
-            <button class="small-btn" @click="deleteProduct(index)">🗑️</button>
+            <button
+              class="small-btn"
+              @click="startEdit(product)"
+            >
+              ✏️
+            </button>
+
+            <button
+              class="small-btn"
+              @click="deleteProduct(product)"
+            >
+              🗑️
+            </button>
           </td>
         </tr>
         </tbody>
       </table>
 
-      <div v-if="showAddForm" class="edit-box">
+      <!-- Produkt hinzufügen -->
+
+      <div
+        v-if="showAddForm"
+        class="edit-box"
+      >
         <h2>Produkt hinzufügen</h2>
 
-        <input v-model="newProduct.article" placeholder="Artikel" />
-        <input v-model="newProduct.category" placeholder="Kategorie" />
-        <input v-model="newProduct.quantity" placeholder="Menge" />
-        <input v-model="newProduct.price" placeholder="Preis" />
+        <input
+          v-model="newProduct.name"
+          placeholder="Artikel"
+        />
+
+        <input
+          v-model="newProduct.category"
+          placeholder="Kategorie"
+        />
+
+        <input
+          v-model="newProduct.amount"
+          placeholder="Menge"
+        />
+
+        <input
+          v-model="newProduct.price"
+          type="number"
+          placeholder="Preis"
+        />
+        <input
+          v-model="newProduct.url"
+          placeholder="Produkt-Link oder Ort z.B. REWE"
+        />
 
         <select v-model="newProduct.priority">
           <option>Hoch</option>
@@ -207,18 +454,48 @@ const cancelNewProduct = () => {
         </select>
 
         <div class="edit-actions">
-          <button @click="saveNewProduct">Hinzufügen</button>
-          <button @click="cancelNewProduct">Abbrechen</button>
+          <button @click="saveNewProduct">
+            Hinzufügen
+          </button>
+
+          <button @click="cancelNewProduct">
+            Abbrechen
+          </button>
         </div>
       </div>
 
-      <div v-if="editingIndex !== null" class="edit-box">
+      <!-- Produkt bearbeiten -->
+
+      <div
+        v-if="editingIndex !== null"
+        class="edit-box"
+      >
         <h2>Produkt bearbeiten</h2>
 
-        <input v-model="editProduct.article" placeholder="Artikel" />
-        <input v-model="editProduct.category" placeholder="Kategorie" />
-        <input v-model="editProduct.quantity" placeholder="Menge" />
-        <input v-model="editProduct.price" placeholder="Preis" />
+        <input
+          v-model="editProduct.name"
+          placeholder="Artikel"
+        />
+
+        <input
+          v-model="editProduct.category"
+          placeholder="Kategorie"
+        />
+
+        <input
+          v-model="editProduct.amount"
+          placeholder="Menge"
+        />
+
+        <input
+          v-model="editProduct.price"
+          type="number"
+          placeholder="Preis"
+        />
+        <input
+          v-model="editProduct.url"
+          placeholder="Produkt-Link"
+        />
 
         <select v-model="editProduct.priority">
           <option>Hoch</option>
@@ -232,8 +509,13 @@ const cancelNewProduct = () => {
         </select>
 
         <div class="edit-actions">
-          <button @click="saveEdit">Speichern</button>
-          <button @click="cancelEdit">Abbrechen</button>
+          <button @click="saveEdit">
+            Speichern
+          </button>
+
+          <button @click="cancelEdit">
+            Abbrechen
+          </button>
         </div>
       </div>
     </main>
@@ -352,23 +634,23 @@ th {
   border: 2px solid #8b4513;
   border-radius: 18px;
   background-color: #fffaf3;
-  max-width: 700px;
+  max-width: 650px;
 }
 
 .edit-box h2 {
   margin-bottom: 20px;
   color: #8b4513;
 }
-
 .edit-box input,
 .edit-box select {
-  width: 100%;
+  width: 92%;
   margin-bottom: 14px;
   padding: 12px;
   border: 1px solid #8b4513;
   border-radius: 8px;
   background-color: #f5f1ea;
   color: #8b4513;
+  display: block;
 }
 
 .edit-actions {
@@ -383,6 +665,73 @@ th {
   border: none;
   border-radius: 10px;
   padding: 12px 25px;
+  cursor: pointer;
+}
+.search-bar {
+  width: 320px;
+  padding: 12px 16px;
+  margin: 20px 0;
+  border: 1px solid #8b4513;
+  border-radius: 10px;
+  background: #fffaf3;
+  color: #8b4513;
+  font-size: 16px;
+}
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.delete-list-btn {
+  background: #c0392b;
+  color: white;
+  border: none;
+  padding: 15px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 17px;
+}
+
+.delete-list-btn:hover {
+  background: #a93226;
+}
+.title-with-edit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.edit-title-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 22px;
+  color: #8b4513;
+}
+
+.edit-title-btn:hover {
+  transform: scale(1.15);
+}
+.rename-box {
+  margin: 20px 0;
+  display: flex;
+  gap: 12px;
+}
+
+.rename-box input {
+  padding: 12px;
+  border: 1px solid #8b4513;
+  border-radius: 10px;
+  background: #fffaf3;
+  color: #8b4513;
+}
+
+.rename-box button {
+  background: #8b4513;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
   cursor: pointer;
 }
 </style>

@@ -1,63 +1,116 @@
 <script setup lang="ts">
 import Sidebar from '@/components/Sidebar.vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ref } from 'vue'
-import { listsByCategory } from '@/data/lists'
+import { onMounted, ref } from 'vue'
+import { useAuth0 } from '@auth0/auth0-vue'
+
+const API_URL = 'https://myshoppinglist-backend-vjdp.onrender.com'
 
 const route = useRoute()
 const router = useRouter()
+const { user } = useAuth0()
 
 const categoryName = route.params.categoryName as string
 
-const lists = ref(listsByCategory[categoryName] || [])
-
-const saveNewList = () => {
-  lists.value.push({
-    name: newList.value.name,
-    products: 0,
-    icon: newList.value.icon || '🛒',
-    isFavorite:false
-  })
-
-  newList.value = {
-    name: '',
-    count: 0,
-    icon: '🛒'
+type ShoppingList = {
+  id: number
+  emoji: string | null
+  name: string
+  category: string
+  itemCount: number
+  favorite: boolean | null
+  owner?: {
+    id: string
   }
-
-  showAddListForm.value = false
 }
 
-const cancelNewList = () => {
-  showAddListForm.value = false
-}
-
+const lists = ref<ShoppingList[]>([])
 const showAddListForm = ref(false)
 
 const newList = ref({
   name: '',
-  count: 0,
-  icon: '🛒'
+  icon: '🛒',
 })
 
-const goBack = () => {
+async function loadLists() {
+  if (!user.value?.sub) return
+
+  const response = await fetch(
+    `${API_URL}/shoppinglist/user/${encodeURIComponent(user.value.sub)}`
+  )
+  const allLists: ShoppingList[] = await response.json()
+
+  const filteredLists = allLists.filter((list) => list.category === categoryName)
+
+  lists.value = await Promise.all(
+    filteredLists.map(async (list) => {
+      const itemResponse = await fetch(`${API_URL}/shoppinglist/${list.id}/items`)
+      const items = await itemResponse.json()
+
+      return {
+        ...list,
+        itemCount: items.length,
+      }
+    }),
+  )
+}
+
+async function saveNewList() {
+  if (!newList.value.name.trim()) return
+
+  await fetch(`${API_URL}/shoppinglist`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      name: newList.value.name,
+      emoji: newList.value.icon || '🛒',
+      category: categoryName,
+      owner: {
+        id: user.value?.sub,
+        email: user.value?.email || null,
+        name: user.value?.name || null,
+      },
+    }),
+  })
+
+  newList.value = {
+    name: '',
+    icon: '🛒',
+  }
+
+  showAddListForm.value = false
+  await loadLists()
+}
+
+function cancelNewList() {
+  showAddListForm.value = false
+}
+
+function goBack() {
   router.push('/dashboard')
 }
 
-const openList = (listName: string) => {
-  router.push(`/list/${categoryName}/${listName}`)
+function openList(list: ShoppingList) {
+  router.push(`/list/${categoryName}/${list.id}`)
 }
 
-const createList = () => {
+function createList() {
   showAddListForm.value = true
 }
-const toggleFavorite = (listName: string) => {
-  const list = lists.value.find(l => l.name === listName)
 
-  if (list) {
-    list.isFavorite = !list.isFavorite
-  }
+async function toggleFavorite(list: ShoppingList) {
+  await fetch(`${API_URL}/shoppinglist/${list.id}/favorite`, {
+    method: 'PATCH',
+  })
+
+  await loadLists()
 }
+
+onMounted(() => {
+  loadLists()
+})
 </script>
 
 <template>
@@ -83,22 +136,23 @@ const toggleFavorite = (listName: string) => {
 
         <button
           v-for="list in lists"
-          :key="list.name"
+          :key="list.id"
           class="card"
-          @click="openList(list.name)"
+          @click="openList(list)"
         >
           <span
             class="favorite-btn"
-            @click.stop="toggleFavorite(list.name)"
+            @click.stop="toggleFavorite(list)"
           >
-            {{ list.isFavorite ? '❤️' : '🤍' }}
-        </span>
+            {{ list.favorite ? '❤️' : '🤍' }}
+          </span>
 
-          <span class="icon">{{ list.icon }}</span>
+          <span class="icon">{{ list.emoji || '🛒' }}</span>
           <h3>{{ list.name }}</h3>
-          <p>{{ list.products }} Produkte</p>
+          <p>{{ list.itemCount ?? 0 }} Produkte</p>
         </button>
       </div>
+
       <div v-if="showAddListForm" class="add-box">
         <h2>Neue Liste erstellen</h2>
 
@@ -162,15 +216,25 @@ p {
 
 .card {
   position: relative;
-  height: 165px;
+
+  height: 205px;
+
   border: 2px solid #8b4513;
   border-radius: 18px;
   background-color: #fffaf3;
   color: #8b4513;
+
   cursor: pointer;
-  text-align: center;
-  transition: 0.2s;
+  transition: .2s;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
   padding: 20px;
+  text-align: center;
+  box-sizing: border-box;
 }
 
 .card:hover {
@@ -186,25 +250,33 @@ p {
   cursor: pointer;
   z-index: 10;
 }
-
 .icon {
+
   font-size: 38px;
+
+  margin-bottom: 14px;
+
 }
 
 .plus {
   font-size: 48px;
   font-weight: bold;
 }
-
 .card h3 {
-  font-size: 22px;
-  margin-top: 15px;
-  margin-bottom: 8px;
-}
 
+  font-size: 22px;
+
+  margin: 0 0 10px;
+
+  line-height: 1.2;
+
+}
 .card p {
-  font-size: 17px;
+
   margin: 0;
+
+  font-size: 17px;
+
 }
 
 .create-card {
@@ -237,7 +309,8 @@ p {
 }
 
 .add-box input {
-  width: 100%;
+  width: 92%;
+  display: block;
   margin-bottom: 14px;
   padding: 13px;
   border: 1px solid #8b4513;

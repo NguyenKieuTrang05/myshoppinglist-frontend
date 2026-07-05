@@ -1,3 +1,4 @@
+import { ref } from 'vue'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { shallowMount, flushPromises } from '@vue/test-utils'
 import DashboardView from '../DashboardView.vue'
@@ -12,19 +13,13 @@ vi.mock('vue-router', () => ({
 
 vi.mock('@auth0/auth0-vue', () => ({
   useAuth0: () => ({
-    user: {
-      value: {
-        sub: 'auth0|123',
-        name: 'Viona',
-        email: 'viona@test.de',
-      },
-    },
-    isLoading: {
-      value: false,
-    },
-    isAuthenticated: {
-      value: true,
-    },
+    user: ref({
+      sub: 'auth0|123',
+      name: 'Viona',
+      email: 'viona@test.de',
+    }),
+    isLoading: ref(false),
+    isAuthenticated: ref(true),
   }),
 }))
 
@@ -82,7 +77,7 @@ describe('DashboardView', () => {
       }),
     )
   })
-  
+
 
   it('zeigt die Überschrift Kategorisierte Listen an', async () => {
     const wrapper = shallowMount(DashboardView)

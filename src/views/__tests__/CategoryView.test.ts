@@ -110,6 +110,13 @@ describe('CategoryView', () => {
     expect(wrapper.text()).not.toContain('Uni Bücher')
   })
 
+  it('zeigt genau zwei Listenkarten für die Kategorie an', async () => {
+    const wrapper = shallowMount(CategoryView)
+    await flushPromises()
+
+    expect(wrapper.findAll('.card:not(.create-card)')).toHaveLength(2)
+  })
+
   it('zeigt den Button Neue Liste an', async () => {
     const wrapper = shallowMount(CategoryView)
     await flushPromises()
@@ -122,7 +129,8 @@ describe('CategoryView', () => {
     await flushPromises()
 
     const cards = wrapper.findAll('.card')
-    await cards[1].trigger('click')
+    expect(cards[1]).toBeTruthy()
+    await cards[1]!.trigger('click')
 
     expect(pushMock).toHaveBeenCalledWith('/list/Lebensmittel/1')
   })

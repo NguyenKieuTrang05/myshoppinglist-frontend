@@ -146,4 +146,15 @@ describe('ListView', () => {
     expect(wrapper.text()).toContain('Offen')
     expect(wrapper.text()).toContain('Gekauft')
   })
+
+  it('zeigt nach dem Leeren der Suche wieder alle Produkte an', async () => {
+    const wrapper = shallowMount(ListView)
+    await flushPromises()
+
+    await wrapper.find('.search-bar').setValue('Milch')
+    await wrapper.find('.search-bar').setValue('')
+
+    expect(wrapper.text()).toContain('Milch')
+    expect(wrapper.text()).toContain('Brot')
+  })
 })

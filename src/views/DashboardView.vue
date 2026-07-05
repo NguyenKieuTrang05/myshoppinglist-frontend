@@ -24,6 +24,16 @@ const newCategory = ref({
   icon: '📁',
 })
 
+const displayName = computed(() => {
+  if (!user.value?.sub) return user.value?.name || ''
+
+  return (
+    localStorage.getItem(`${user.value.sub}-profileName`) ||
+    user.value.name ||
+    ''
+  )
+})
+
 const categories = computed(() => {
   const grouped: Record<string, { name: string; icon: string; count: number }> = {}
 
@@ -113,7 +123,7 @@ watch(
 
     <main class="content">
       <div class="top-section">
-        <h1>Hallo {{ user?.name }} 👋</h1>
+        <h1>Hallo {{ displayName }} 👋</h1>
         <p>Hier findest du deine kategorisierten Einkaufslisten.</p>
       </div>
 

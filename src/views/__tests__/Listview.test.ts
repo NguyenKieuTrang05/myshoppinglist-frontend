@@ -86,4 +86,64 @@ describe('ListView', () => {
     expect(wrapper.text()).toContain('Milch')
     expect(wrapper.text()).not.toContain('Brot')
   })
+  it('zeigt den Namen der Einkaufsliste an', async () => {
+    const wrapper = shallowMount(ListView)
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Wocheneinkauf')
+  })
+
+  it('zeigt den Button Produkt hinzufügen an', async () => {
+    const wrapper = shallowMount(ListView)
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Produkt hinzufügen')
+  })
+
+  it('zeigt den Button Liste löschen an', async () => {
+    const wrapper = shallowMount(ListView)
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Liste löschen')
+  })
+
+  it('zeigt die Suchleiste an', async () => {
+    const wrapper = shallowMount(ListView)
+    await flushPromises()
+
+    expect(wrapper.find('.search-bar').exists()).toBe(true)
+  })
+  it('zeigt die Filter-Tabs an', async () => {
+    const wrapper = shallowMount(ListView)
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Alle Artikel')
+    expect(wrapper.text()).toContain('Nach Kategorie')
+    expect(wrapper.text()).toContain('Zu kaufen')
+    expect(wrapper.text()).toContain('Priorität')
+  })
+
+  it('zeigt Produktkategorien an', async () => {
+    const wrapper = shallowMount(ListView)
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Kühlware')
+    expect(wrapper.text()).toContain('Backwaren')
+  })
+
+  it('zeigt Produktpreise an', async () => {
+    const wrapper = shallowMount(ListView)
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('1.5 €')
+    expect(wrapper.text()).toContain('2.5 €')
+  })
+
+  it('zeigt Produktstatus an', async () => {
+    const wrapper = shallowMount(ListView)
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Offen')
+    expect(wrapper.text()).toContain('Gekauft')
+  })
 })
